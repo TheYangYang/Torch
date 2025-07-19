@@ -1,9 +1,11 @@
 //platform/engine.h
 #pragma once
 #include <pch/pch.h>
-#include "window/Window.h"
+#include "Headers.h"
+
 namespace engine
 {
+    class TorchGraphicsContext;
     class Engine
     {
     public:
@@ -11,11 +13,18 @@ namespace engine
         ~Engine();
         void operator()();
 
+        Engine(const Engine&) = delete;
+        Engine& operator=(const Engine&) = delete;
+
+        Engine(Engine&&) = delete;
+        Engine& operator=(Engine&&) = delete;
+
     private:
         Engine();
-        static std::unique_ptr<Engine> s_EngineInstance;
         void Run();
-
-        std::unique_ptr<Window> m_TorchWindow;
+        void Render();
+        void Initialization();
+        static std::unique_ptr<Engine> s_EngineInstance;
+        
     };
 }
