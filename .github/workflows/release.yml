@@ -1,0 +1,45 @@
+name: Build & Release Torch Engine
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Configure build (Release)
+        run: cmake -B out/build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build project
+        run: cmake --build out/build --config Release
+
+      - name: Prepare release package
+        run: |
+          mkdir release-package
+          cp out/build/Release/Sandbox.exe release-package/
+          cp -r assets release-package/
+          cp -r shaders release-package/
+          cp LICENSE README.md release-package/
+          powershell Compress-Archive -Path release-package\* -DestinationPath torch-release.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: torch-release
+          path: torch-release.zip
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: torch-release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

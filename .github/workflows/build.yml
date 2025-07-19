@@ -1,0 +1,29 @@
+name: Build Torch (Windows)
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on Windows with MSVC
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure project with CMake (Release)
+        run: |
+          cmake -B out/build -DCMAKE_BUILD_TYPE=Release -S .
+
+      - name: Build project
+        run: |
+          cmake --build out/build --config Release
+
