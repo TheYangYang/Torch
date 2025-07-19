@@ -36,14 +36,14 @@ else()
     message("Platform: Unsupported")
 endif()
 
-# Find Vulkan package
-find_package(Vulkan REQUIRED)
-
-if(Vulkan_FOUND)
-    message("----FIND VULKAN----: ", ${Vulkan_INCLUDE_DIRS})
-else()
-    message("----CANNOT FIND VULKAN----")
-endif()
+# [TEMPORARILY REMOVED]
+# Vulkan detection - DISABLED
+# find_package(Vulkan REQUIRED)
+# if(Vulkan_FOUND)
+#     message("----FIND VULKAN----: ${Vulkan_INCLUDE_DIRS}")
+# else()
+#     message("----CANNOT FIND VULKAN----")
+# endif()
 
 # Include directories
 include_directories(
