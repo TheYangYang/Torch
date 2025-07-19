@@ -1,4 +1,4 @@
-# Define the Engine library target
+# Define the Editor library target
 add_library(Editor STATIC)
 
 # Specify the source files for the Editor library
@@ -16,7 +16,8 @@ target_sources(Editor PRIVATE ${ENGINE_SOURCES})
 target_precompile_headers(Editor PRIVATE ${CMAKE_SOURCE_DIR}/pch/pch.h)
 
 # Include directories for the Editor library
-target_include_directories(Editor PRIVATE ${CMAKE_SOURCE_DIR} ${Vulkan_INCLUDE_DIRS})
+# Removed ${Vulkan_INCLUDE_DIRS}
+target_include_directories(Editor PRIVATE ${CMAKE_SOURCE_DIR})
 
-# Link the Utils library and Vulkan to the Editor library
-target_link_libraries(Editor PRIVATE Utils glfw glad Vulkan::Vulkan imgui Core yaml-cpp::yaml-cpp EnTT::EnTT ImGuizmo)
+# Link the Utils library and other dependencies (Vulkan removed)
+target_link_libraries(Editor PRIVATE Utils glfw glad imgui Core yaml-cpp::yaml-cpp EnTT::EnTT ImGuizmo)

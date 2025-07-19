@@ -13,5 +13,5 @@ target_include_directories(glad PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# Linking Vulkan in the glad target
-target_link_libraries(glad PRIVATE Vulkan::Vulkan)
+# Temporarily disable Vulkan linking
+# target_link_libraries(glad PRIVATE Vulkan::Vulkan)

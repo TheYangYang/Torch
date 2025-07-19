@@ -1,20 +1,27 @@
 # Define the Engine library target
 add_library(Core STATIC)
 
-# Specify the source files for the Engine library
-file(GLOB_RECURSE ENGINE_SOURCES
+# Get all .cpp files recursively under Core folder
+file(GLOB_RECURSE ALL_ENGINE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp
 )
 
-# Add the source files to the Engine library
+# Filter out any source files inside a 'vkcore' folder
+set(ENGINE_SOURCES "")
+foreach(src_file IN LISTS ALL_ENGINE_SOURCES)
+    if(NOT src_file MATCHES "/vkcore/")
+        list(APPEND ENGINE_SOURCES ${src_file})
+    endif()
+endforeach()
+
+# Add the filtered source files to the Engine library
 target_sources(Core PRIVATE ${ENGINE_SOURCES})
 
 # Specify the precompiled header
 target_precompile_headers(Core PRIVATE ${CMAKE_SOURCE_DIR}/pch/pch.h)
 
-# Include directories for the Engine library
-target_include_directories(Core PRIVATE ${CMAKE_SOURCE_DIR} ${Vulkan_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
+# Include directories for the Engine library (Vulkan_INCLUDE_DIRS removed)
+target_include_directories(Core PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-# Link the Logger library and Vulkan to the Engine library
-target_link_libraries(Core PRIVATE Utils glfw glad Vulkan::Vulkan glm tinygltf yaml-cpp::yaml-cpp EnTT::EnTT)
+# Link the Logger library and other dependencies (Vulkan removed)
+target_link_libraries(Core PRIVATE Utils glfw glad glm tinygltf yaml-cpp::yaml-cpp EnTT::EnTT)
