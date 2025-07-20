@@ -38,12 +38,12 @@ endif()
 
 # [TEMPORARILY REMOVED]
 # Vulkan detection - DISABLED
-# find_package(Vulkan REQUIRED)
-# if(Vulkan_FOUND)
-#     message("----FIND VULKAN----: ${Vulkan_INCLUDE_DIRS}")
-# else()
-#     message("----CANNOT FIND VULKAN----")
-# endif()
+find_package(Vulkan REQUIRED)
+if(Vulkan_FOUND)
+    message("----FIND VULKAN----: ${Vulkan_INCLUDE_DIRS}")
+else()
+    message("----CANNOT FIND VULKAN----")
+endif()
 
 # Include directories
 include_directories(
@@ -66,5 +66,7 @@ add_subdirectory(Core)
 add_subdirectory(engine)
 add_subdirectory(Sandbox)
 
+# Copy compiled shaders to bin/ directory after build
+file(COPY ${CMAKE_SOURCE_DIR}/compiled_shaders DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
 

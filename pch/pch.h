@@ -11,7 +11,7 @@
 #error Unsupported platform
 #endif
 
-#define TORCH_ENGINE_API_OPENGL
+//#define TORCH_ENGINE_API_OPENGL
 
 // Standard Library Headers
 #include <iostream>
@@ -66,13 +66,14 @@
 #include <FileUtils.h>
 
 // Vulkan Headers
-// #include <vulkan/vulkan.h>
+#include <vulkan/vulkan.h>
 
 #include <imgui.h>
-// #include <backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_vulkan.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+#define GLFW_INCLUDE_VULKAN
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <glad/gl.h>
@@ -83,3 +84,56 @@
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 
+
+// Memory 
+template<typename T>
+using Ref = std::shared_ptr<T>;
+
+template<typename T, typename... Args>
+constexpr Ref<T> CreateRef(Args&&... args)
+{
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
+
+template<typename T>
+using Scope = std::unique_ptr<T>;
+
+template<typename T, typename... Args>
+constexpr Scope<T> CreateScope(Args&&... args)
+{
+    return std::make_unique<T>(std::forward<Args>(args)...);
+}
+
+
+// Vulkan validation layer
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+const std::vector<const char*> deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
+#ifdef NDEBUG
+const bool enableValidationLayers = false;
+#else
+const bool enableValidationLayers = true;
+#endif
+
+inline VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+    }
+    else {
+        return VK_ERROR_EXTENSION_NOT_PRESENT;
+    }
+}
+
+inline void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+        func(instance, debugMessenger, pAllocator);
+    }
+}

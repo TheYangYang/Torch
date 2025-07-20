@@ -19,10 +19,10 @@ namespace editor
 
 		static bool demo = true;
 		ImGui::ShowDemoWindow(&demo);
-		for (auto &editor : m_EditorModules)
+		/*for (auto &editor : m_EditorModules)
 		{
 			editor.second->Render();
-		}
+		}*/
 		KeyboardShortCut();
 	}
 

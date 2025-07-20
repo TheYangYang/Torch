@@ -1,7 +1,7 @@
 #include "TorchGraphicsContext.h"
 #include "TorchOpenGLContext.h"
 #include "TorchVulkanContext.h"
-
+#define TORCH_ENGINE_API_VULKAN
 namespace core
 {
 	std::unique_ptr<TorchGraphicsContext> TorchGraphicsContext::s_GraphicsContextInstance = nullptr;
@@ -11,7 +11,7 @@ namespace core
 		if (!s_GraphicsContextInstance)
 		{
 #if defined(TORCH_ENGINE_API_VULKAN) 
-			s_GraphicsContextInstance = std::make_unique<TorchVulkanContext>();
+			//s_GraphicsContextInstance = std::make_unique<TorchVulkanContext>();
 #elif defined(TORCH_ENGINE_API_OPENGL)
 			s_GraphicsContextInstance = std::make_unique<TorchOpenGLContext>();
 #else

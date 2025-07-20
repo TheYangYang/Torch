@@ -15,12 +15,13 @@ namespace core
 
     void Keyboard::OnEvent(KeyPressEvent& event)
     {
+        TORCH_LOG_DEBUG("[{}:{}], key {} pressed.", __FILE__, __LINE__, event.GetKeyCode());
         m_KeyStates[event.GetKeyCode()] = true; 
     }
 
     void Keyboard::OnEvent(KeyReleaseEvent& event)
     {
-        std::cout << "released" << std::endl;
+        TORCH_LOG_DEBUG("[{}:{}], key {} released.", __FILE__, __LINE__, event.GetKeyCode());
         m_KeyStates[event.GetKeyCode()] = false; 
     }
 

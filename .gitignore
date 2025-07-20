@@ -1,4 +1,31 @@
-out
-.git
-.vs
-build
+# Build artifacts
+build/
+compiled_shaders/
+
+# Visual Studio files
+.vs/
+*.vcxproj*
+*.sln
+*.user
+*.suo
+*.vcxproj.filters
+
+# Intermediate files
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.log
+
+# Shader compiler output
+*.spv
+
+# Generated folders
+out/
+
+# Git metadata
+.git/
+
+# OS junk files
+Thumbs.db
+.DS_Store

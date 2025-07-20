@@ -89,6 +89,9 @@
         "numeric": "cpp",
         "queue": "cpp",
         "ranges": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "any": "cpp",
+        "memory_resource": "cpp",
+        "stack": "cpp"
     }
 }

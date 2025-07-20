@@ -76,29 +76,29 @@ namespace core
     void Shader::InitShader(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath)
     {
         // Load and compile shaders
-        std::string vertexCode = utils::FileUtils::ReadShaderFile(vertexPath);
-        std::string fragmentCode = utils::FileUtils::ReadShaderFile(fragmentPath);
-        std::string geometryCode;
+        //std::string vertexCode = utils::FileUtils::ReadShaderFile(vertexPath);
+        //std::string fragmentCode = utils::FileUtils::ReadShaderFile(fragmentPath);
+        //std::string geometryCode;
 
-        if (!geometryPath.empty())  // Check if the geometry path is non-empty
-            geometryCode = utils::FileUtils::ReadShaderFile(geometryPath);
+        //if (!geometryPath.empty())  // Check if the geometry path is non-empty
+        //    geometryCode = utils::FileUtils::ReadShaderFile(geometryPath);
 
-        // Create shader objects
-        uint32_t vertex = CreateShader(vertexCode, GL_VERTEX_SHADER);
-        uint32_t fragment = CreateShader(fragmentCode, GL_FRAGMENT_SHADER);
-        uint32_t geometry = 0;
+        //// Create shader objects
+        //uint32_t vertex = CreateShader(vertexCode, GL_VERTEX_SHADER);
+        //uint32_t fragment = CreateShader(fragmentCode, GL_FRAGMENT_SHADER);
+        //uint32_t geometry = 0;
 
-        if (!geometryPath.empty())  // Check again before creating the geometry shader
-            geometry = CreateShader(geometryCode, GL_GEOMETRY_SHADER);
+        //if (!geometryPath.empty())  // Check again before creating the geometry shader
+        //    geometry = CreateShader(geometryCode, GL_GEOMETRY_SHADER);
 
-        // Link shaders into a program
-        m_ShaderID = CreateShaderProgram(vertex, fragment, geometry);
+        //// Link shaders into a program
+        //m_ShaderID = CreateShaderProgram(vertex, fragment, geometry);
 
-        // Cleanup shaders
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-        if (geometry)  // Only delete geometry shader if it was created
-            glDeleteShader(geometry);
+        //// Cleanup shaders
+        //glDeleteShader(vertex);
+        //glDeleteShader(fragment);
+        //if (geometry)  // Only delete geometry shader if it was created
+        //    glDeleteShader(geometry);
     }
 
 

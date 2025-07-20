@@ -1,64 +1,56 @@
-// #pragma once
-// #include <pch/pch.h>
-// #include "TorchGraphicsContext.h"
-// #include "core/vkcore/instance/VulkanInstance.h"
-// #include "core/vkcore/validationlayer/VulkanValidationLayers.h"
-// #include "core/vkcore/devices/VulkanPhysicalDevice.h"
-// #include "core/vkcore/devices/VulkanLogicDevice.h"
-// #include "core/vkcore/surface/VulkanWindowSurface.h"
-// #include "core/vkcore/swapchain/VulkanSwapChain.h"
-// #include "core/vkcore/imageviews/VulkanImageViews.h"
-// #include "core/vkcore/pipeline/VulkanGraphicsPipeline.h"
-// #include "core/vkcore/renderpass/VulkanRenderPass.h"
-// #include "core/vkcore/framebuffer/VulkanFramebuffer.h"
-// #include "core/vkcore/command/VulkanCommandBuffer.h"
-// #include "core/vkcore/command/VulkanCommandPool.h"
-// #include "core/vkcore/syncobjects/VulkanSyncObjects.h"
-// //#include "core/renderer/VertexBuffer.h"
+#pragma once
+#include <pch/pch.h>
+#include <core/vkcore/VulkanInstance.h>
+#include <core/vkcore/VulkanUtils.h>
+#include <core/vkcore/VulkanSurface.h>
+#include <core/vkcore/VulkanPhysicalDevice.h>
+#include <core/vkcore/VulkanLogicDevice.h>
+#include <core/vkcore/VulkanSwapChain.h>
+#include <core/vkcore/VulkanImageView.h>
+#include <core/vkcore/VulkanGraphicsPipeline.h>
+#include <core/vkcore/VulkanRenderPass.h>
+#include <core/vkcore/VulkanFramebuffer.h>
+#include <core/vkcore/VulkanCommandPool.h>
+#include <core/vkcore/VulkanCommandBuffer.h>
+#include <core/vkcore/VulkanSyncObjects.h>
 
-// namespace core
-// {
-// 	class TorchVulkanContext : public TorchGraphicsContext
-// 	{
-// 	public:
-// 		TorchVulkanContext();
-// 		~TorchVulkanContext();
-// 		void DrawFrame() override;
-// 		void OnUpdate() override;
+namespace core
+{
 
-// 		APIType GetAPIType() const override { return APIType::Vulkan; }
+	class TorchVulkanContext 
+	{
+	public:
+		static TorchVulkanContext& Get(GLFWwindow* window)
+		{
+			static TorchVulkanContext instance(window);
+			return instance;
+		}
 
-// 		// Getter methods
-// 		const VulkanInstance &GetInstance() const { return m_Instance; }
-// 		const VulkanPhysicalDevice &GetPhysicalDevice() const { return m_PhysicalDevice; }
-// 		const VulkanLogicDevice &GetLogicalDevice() const { return m_LogicDevice; }
-// 		const VulkanWindowSurface &GetSurface() const { return m_Surface; }
-// 		const VulkanSwapChain &GetSwapChain() const { return m_SwapChain; }
-// 		const VulkanImageViews &GetImageViews() const { return m_ImageViews; }
-// 		const VulkanGraphicsPipeline &GetGraphicsPipeline() const { return m_GraphicsPipeline; }
-// 		const VulkanRenderPass &GetRenderPass() const { return m_RenderPass; }
-// 		const VulkanFramebuffer &GetFramebuffer() const { return m_Framebuffer; }
-// 		const VulkanCommandBuffer &GetCommandBuffer() const { return m_CommandBuffer; }
-// 		const VulkanCommandPool &GetCommandPool() const { return m_CommandPool; }
-// 		const VulkanSyncObjects &GetSyncObjects() const { return m_SyncObjects; }
+		TorchVulkanContext(GLFWwindow* window);
+		~TorchVulkanContext();
+		void DrawFrame();
+		void OnUpdate();
 
-// 	private:
-// 		void CreateInstance();
-// 		VulkanInstance m_Instance;
-// 		VulkanPhysicalDevice m_PhysicalDevice;
-// 		VulkanLogicDevice m_LogicDevice;
-// 		VulkanWindowSurface m_Surface;
-// 		VulkanSwapChain m_SwapChain;
-// 		VulkanImageViews m_ImageViews;
-// 		VulkanGraphicsPipeline m_GraphicsPipeline;
-// 		VulkanRenderPass m_RenderPass;
-// 		VulkanFramebuffer m_Framebuffer;
-// 		VulkanCommandBuffer m_CommandBuffer;
-// 		VulkanCommandPool m_CommandPool;
-// 		VulkanSyncObjects m_SyncObjects;
-// 		//VertexBuffer m_VertexBuffer;
 
-// 		uint32_t currentFrame = 0;
+		void TorchVulkanContext::ReCreate();
+		
+	private:
+		static GLFWwindow* s_WindowPtr;
 
-// 	};
-// }
+		void RecordCommandBuffer(uint32_t imageIndex);
+
+		//vk core
+		Scope<VulkanInstance> m_Instance;
+		Scope<VulkanSurface> m_Surface;
+		Scope<VulkanPhysiclDevice> m_PhysicalDevice;
+		Scope<VulkanLogicDevice> m_LogicDevice;
+		Scope<VulkanSwapChain> m_SwapChain;
+		Scope<VulkanImageView> m_ImageView;
+		Scope<VulkanGraphicsPipeline> m_GraphicsPipeline;
+		Scope<VulkanRenderPass> m_RenderPass;
+		Scope<VulkanFramebuffer> m_Framebuffer;
+		Scope<VulkanCommandPool> m_CommandPool;
+		Scope<VulkanCommandBuffer> m_CommandBuffer;
+		Scope<VulkanSyncObjects> m_SyncObjects;
+	};
+}

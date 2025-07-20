@@ -6,8 +6,7 @@ namespace utils
 	class FileUtils
 	{
 	public:
-		static std::vector<char> ReadFile(const std::string& filename);
-		static std::string ReadShaderFile(const std::string& filePath);
+		static std::vector<char> ReadShaderFile(const std::string& filePath);
 
 		static std::string GetRootPath();
 		static std::string OpenFile(const char* filter);

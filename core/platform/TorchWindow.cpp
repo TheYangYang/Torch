@@ -21,16 +21,21 @@ namespace core
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #else
+        // check for vulkan support
+        if (GLFW_FALSE == glfwVulkanSupported()) {
+            // not supported
+            glfwTerminate();
+            return;
+        }
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
+       
         m_Specification.glfwWindow = glfwCreateWindow(m_Specification.width, m_Specification.height, m_Specification.title.c_str(), nullptr, nullptr);
         if (!m_Specification.glfwWindow)
         {
             TORCH_LOG_ERROR("Failed to create GLFW window.");
             return;
         }
-
-        glfwMakeContextCurrent(m_Specification.glfwWindow);
 
 #ifdef TORCH_ENGINE_API_OPENGL
         if (!gladLoadGL(glfwGetProcAddress))
@@ -39,10 +44,14 @@ namespace core
             return;
         }
 #endif
-
+        glfwMakeContextCurrent(m_Specification.glfwWindow);
         glfwSetWindowUserPointer(m_Specification.glfwWindow, this);
+
+
+#ifdef TORCH_ENGINE_API_OPENGL
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+#endif
 
         // set window size call back function
         glfwSetWindowSizeCallback(m_Specification.glfwWindow, [](GLFWwindow *window, int width, int height)
@@ -136,6 +145,7 @@ namespace core
         });
 
         RegisteEventHandlers();
+
     }
 
     bool TorchWindow::ShouldClose() const noexcept
