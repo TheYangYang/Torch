@@ -28,7 +28,7 @@ namespace editor
 			return;
 		}
 
-		m_Entity = { selectedEntityId, &core::SceneManager::GetSceneManager()->GetSceneRef().get() };
+		m_Entity = {selectedEntityId, &core::SceneManager::GetSceneManager()->GetSceneRef().get()};
 
 		RenderUUIDHeader();
 		RenderEntityType();
@@ -51,7 +51,7 @@ namespace editor
 	{
 		if (m_Entity.HasComponent<core::EntityTypeComponent>())
 		{
-			auto& typeComponent = m_Entity.GetComponent<core::EntityTypeComponent>();
+			auto &typeComponent = m_Entity.GetComponent<core::EntityTypeComponent>();
 			ImGui::Text("Entity Type: %s", typeComponent.entityType == core::EntityType::General ? "General" : "Light");
 		}
 	}
@@ -60,7 +60,7 @@ namespace editor
 	{
 		if (m_Entity.HasComponent<core::UUIDComponent>())
 		{
-			auto& uuidComponent = m_Entity.GetComponent<core::UUIDComponent>();
+			auto &uuidComponent = m_Entity.GetComponent<core::UUIDComponent>();
 			ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
 			ImGui::Text("UUID: %s", uuidComponent.uuid.ToString().c_str());
 			ImGui::PopTextWrapPos();
@@ -71,7 +71,7 @@ namespace editor
 	{
 		if (m_Entity.HasComponent<core::LabelComponent>())
 		{
-			auto& labelComponent = m_Entity.GetComponent<core::LabelComponent>();
+			auto &labelComponent = m_Entity.GetComponent<core::LabelComponent>();
 
 			static char str0[256];
 			strncpy(str0, labelComponent.label.c_str(), sizeof(str0) - 1);
@@ -90,35 +90,38 @@ namespace editor
 	}
 	void EntityPropertiesPanel::RenderModelHeader()
 	{
-		auto& modelComponent = m_Entity.GetComponent<core::ModelComponent>();
+		auto &modelComponent = m_Entity.GetComponent<core::ModelComponent>();
 		ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x);
-		ImGui::Text("Model: "); ImGui::SameLine();
+		ImGui::Text("Model: ");
+		ImGui::SameLine();
 		if (modelComponent.model != nullptr)
 		{
 			ImGui::Text(modelComponent.model->GetModelPath().c_str());
 		}
 		ImGui::PopTextWrapPos();
-		
+
 		if (ImGui::Button("Load Model"))
 		{
 			m_ModelFilePath = utils::FileUtils::OpenFile("GLTF/GLB Files (*.gltf;*.glb)\0*.gltf;*.glb\0All Files (*.*)\0*.*\0");
 			core::ModelManager::GetInstance()->LoadModel(m_ModelFilePath);
 			if (m_Entity.HasComponent<core::ModelComponent>())
 			{
-				auto& modelComponent = m_Entity.GetComponent<core::ModelComponent>();
+				auto &modelComponent = m_Entity.GetComponent<core::ModelComponent>();
 				modelComponent.model = core::ModelManager::GetInstance()->GetModel(m_ModelFilePath);
 			}
-		} 
+		}
 		ImGui::NewLine();
 	}
 	void EntityPropertiesPanel::RenderTransformHeader()
 	{
 		if (m_Entity.HasComponent<core::TransformComponent>())
 		{
-			auto& transform = m_Entity.GetComponent<core::TransformComponent>();
+			auto &transform = m_Entity.GetComponent<core::TransformComponent>();
 			if (ImGui::CollapsingHeader("Transform Component", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
 				DrawVec3Control("Translation", transform.translation);
 				ImGui::Spacing();
 				glm::vec3 rotation = glm::degrees(transform.rotation);
@@ -126,7 +129,10 @@ namespace editor
 				ImGui::Spacing();
 				transform.rotation = glm::radians(rotation);
 				DrawVec3Control("Scale", transform.scale, 1.0f);
-				ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing(); ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
+				ImGui::Spacing();
 			}
 		}
 	}
@@ -134,13 +140,22 @@ namespace editor
 	{
 		if (m_Entity.HasComponent<core::MaterialComponent>())
 		{
-			auto& material = m_Entity.GetComponent<core::MaterialComponent>();
+			auto &material = m_Entity.GetComponent<core::MaterialComponent>();
 			if (ImGui::CollapsingHeader("Material Component", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				uint32_t imageSize = 100;
 				ImGui::Checkbox("Use Albedo", &material.useAlbedoTexture);
-				ImGui::PushID(1);
-				if (ImGui::ImageButton((void*)(intptr_t)(material.albedoTexture == 0 ? m_DefaultTexture : material.albedoTexture), ImVec2(imageSize, imageSize)))
+
+				// Corrected Albedo ImageButton call (removed frame_padding argument)
+				if (ImGui::ImageButton(
+						"albedo_texture_button",																		  // String ID
+						(ImTextureID)(intptr_t)(material.albedoTexture == 0 ? m_DefaultTexture : material.albedoTexture), // Texture ID
+						ImVec2(imageSize, imageSize),																	  // Size
+						ImVec2(0, 0),																					  // UV0
+						ImVec2(1, 1),																					  // UV1
+						// REMOVED: -1,                // frame_padding (this was the 8th argument)
+						ImVec4(0, 0, 0, 0),	 // Background color
+						ImVec4(1, 1, 1, 1))) // Tint color
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
 					if (!path.empty())
@@ -149,12 +164,19 @@ namespace editor
 						material.albedoTexture = core::Texture::LoadTexture(path);
 					}
 				}
-				ImGui::PopID();
 				ImGui::Separator();
 
 				ImGui::Checkbox("Use Normal", &material.useNormalTexture);
-				ImGui::PushID(2);
-				if (ImGui::ImageButton((void*)(intptr_t)(material.normalTexture == 0 ? m_DefaultTexture : material.normalTexture), ImVec2(imageSize, imageSize)))
+				// Corrected Normal ImageButton call (removed frame_padding argument)
+				if (ImGui::ImageButton(
+						"normal_texture_button", // String ID
+						(ImTextureID)(intptr_t)(material.normalTexture == 0 ? m_DefaultTexture : material.normalTexture),
+						ImVec2(imageSize, imageSize),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						// REMOVED: -1,                // frame_padding
+						ImVec4(0, 0, 0, 0),
+						ImVec4(1, 1, 1, 1)))
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
 					if (!path.empty())
@@ -163,12 +185,19 @@ namespace editor
 						material.normalTexture = core::Texture::LoadTexture(path);
 					}
 				}
-				ImGui::PopID();
 				ImGui::Separator();
 
 				ImGui::Checkbox("Use Metallic", &material.useMetallicTexture);
-				ImGui::PushID(3);
-				if (ImGui::ImageButton((void*)(intptr_t)(material.metallicTexture == 0 ? m_DefaultTexture : material.metallicTexture), ImVec2(imageSize, imageSize)))
+				// Corrected Metallic ImageButton call (removed frame_padding argument)
+				if (ImGui::ImageButton(
+						"metallic_texture_button", // String ID
+						(ImTextureID)(intptr_t)(material.metallicTexture == 0 ? m_DefaultTexture : material.metallicTexture),
+						ImVec2(imageSize, imageSize),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						// REMOVED: -1,                // frame_padding
+						ImVec4(0, 0, 0, 0),
+						ImVec4(1, 1, 1, 1)))
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
 					if (!path.empty())
@@ -178,12 +207,19 @@ namespace editor
 					}
 				}
 				ImGui::SliderFloat("Metallic", &material.metallic, 0.0f, 1.0f);
-				ImGui::PopID();
 				ImGui::Separator();
 
 				ImGui::Checkbox("Use Roughness", &material.useRoughnessTexture);
-				ImGui::PushID(4);
-				if (ImGui::ImageButton((void*)(intptr_t)(material.roughnessTexture == 0 ? m_DefaultTexture : material.roughnessTexture), ImVec2(imageSize, imageSize)))
+				// Corrected Roughness ImageButton call (removed frame_padding argument)
+				if (ImGui::ImageButton(
+						"roughness_texture_button", // String ID
+						(ImTextureID)(intptr_t)(material.roughnessTexture == 0 ? m_DefaultTexture : material.roughnessTexture),
+						ImVec2(imageSize, imageSize),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						// REMOVED: -1,                // frame_padding
+						ImVec4(0, 0, 0, 0),
+						ImVec4(1, 1, 1, 1)))
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
 					if (!path.empty())
@@ -193,12 +229,19 @@ namespace editor
 					}
 				}
 				ImGui::SliderFloat("Roughness", &material.roughness, 0.0f, 10.0f);
-				ImGui::PopID();
 				ImGui::Separator();
 
 				ImGui::Checkbox("Use AO", &material.useAOTexture);
-				ImGui::PushID(5);
-				if (ImGui::ImageButton((void*)(intptr_t)(material.aoTexture == 0 ? m_DefaultTexture : material.aoTexture), ImVec2(imageSize, imageSize)))
+				// Corrected AO ImageButton call (removed frame_padding argument)
+				if (ImGui::ImageButton(
+						"ao_texture_button", // String ID
+						(ImTextureID)(intptr_t)(material.aoTexture == 0 ? m_DefaultTexture : material.aoTexture),
+						ImVec2(imageSize, imageSize),
+						ImVec2(0, 0),
+						ImVec2(1, 1),
+						// REMOVED: -1,                // frame_padding
+						ImVec4(0, 0, 0, 0),
+						ImVec4(1, 1, 1, 1)))
 				{
 					const std::string path = utils::FileUtils::OpenFile("Image Files (*.jpg;*.png)\0*.jpg;*.png\0");
 					if (!path.empty())
@@ -207,7 +250,6 @@ namespace editor
 						material.aoTexture = core::Texture::LoadTexture(path);
 					}
 				}
-				ImGui::PopID();
 				ImGui::Separator();
 			}
 		}
@@ -244,9 +286,9 @@ namespace editor
 			ImGui::EndPopup();
 		}
 	}
-	void EntityPropertiesPanel::DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue, float columnWidth)
+	void EntityPropertiesPanel::DrawVec3Control(const std::string &label, glm::vec3 &values, float resetValue, float columnWidth)
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		ImGuiIO &io = ImGui::GetIO();
 		auto boldFont = io.Fonts->Fonts[0];
 
 		ImGui::PushID(label.c_str());
@@ -257,16 +299,14 @@ namespace editor
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+		
+		float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+		ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
 
-
-
-		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
 		ImGui::PushFont(boldFont);
 		if (ImGui::Button("X", buttonSize))
 			values.x = resetValue;
@@ -278,9 +318,9 @@ namespace editor
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
 		ImGui::PushFont(boldFont);
 		if (ImGui::Button("Y", buttonSize))
 			values.y = resetValue;
@@ -292,9 +332,9 @@ namespace editor
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
 		ImGui::PushFont(boldFont);
 		if (ImGui::Button("Z", buttonSize))
 			values.z = resetValue;
