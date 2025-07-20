@@ -29,9 +29,10 @@ jobs:
           mkdir release-package
           # CORRECTED PATH: Use 'out/build/bin/Release/Sandbox.exe'
           cp out/build/bin/Release/Sandbox.exe release-package/
+          # This line will copy the 'assets' folder and all its contents,
+          # including the 'shader' subdirectory inside 'assets'.
           cp -r assets release-package/
-          cp -r shaders release-package/
-          cp LICENSE README.md release-package/
+          # cp LICENSE README.md release-package/
           powershell Compress-Archive -Path release-package\* -DestinationPath torch-release.zip
 
       - name: Upload artifact
