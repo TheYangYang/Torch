@@ -27,8 +27,8 @@ jobs:
       - name: Prepare release package
         run: |
           mkdir release-package
-          cp out/build/Release/Sandbox.exe release-package/
-          # Ensure assets and shaders are indeed simple directories or submodules handled by `submodules: 'true'`
+          # CORRECTED PATH: Use 'out/build/bin/Release/Sandbox.exe'
+          cp out/build/bin/Release/Sandbox.exe release-package/
           cp -r assets release-package/
           cp -r shaders release-package/
           cp LICENSE README.md release-package/
