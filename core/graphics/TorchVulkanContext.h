@@ -32,10 +32,25 @@ namespace core
 		void OnUpdate();
 
 
-		void TorchVulkanContext::ReCreate();
+		void ReCreateSwapChain();
+
+
+		VulkanInstance& GetInstance() { return *m_Instance; }
+		VulkanSurface& GetSurface() { return *m_Surface; }
+		VulkanPhysiclDevice& GetPhysicalDevice() { return *m_PhysicalDevice; }
+		VulkanLogicDevice& GetLogicDevice() { return *m_LogicDevice; }
+		VulkanSwapChain& GetSwapChain() { return *m_SwapChain; }
+		VulkanImageView& GetImageView() { return *m_ImageView; }
+		VulkanGraphicsPipeline& GetGraphicsPipeline() { return *m_GraphicsPipeline; }
+		VulkanRenderPass& GetRenderPass() { return *m_RenderPass; }
+		VulkanFramebuffer& GetFramebuffer() { return *m_Framebuffer; }
+		VulkanCommandPool& GetCommandPool() { return *m_CommandPool; }
+		VulkanCommandBuffer& GetCommandBuffer() { return *m_CommandBuffer; }
+		VulkanSyncObjects& GetSyncObjects() { return *m_SyncObjects; }
 		
 	private:
 		static GLFWwindow* s_WindowPtr;
+		bool framebufferResized = false;
 
 		void RecordCommandBuffer(uint32_t imageIndex);
 
@@ -52,5 +67,6 @@ namespace core
 		Scope<VulkanCommandPool> m_CommandPool;
 		Scope<VulkanCommandBuffer> m_CommandBuffer;
 		Scope<VulkanSyncObjects> m_SyncObjects;
+
 	};
 }

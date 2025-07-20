@@ -7,8 +7,8 @@ namespace core
 	{
 	public:
 		VulkanCommandBuffer(VkCommandPool commandPool, VkDevice logicDevice);
-		VkCommandBuffer& GetCommandBufferRef() { return m_CommandBuffer; }
+		std::vector<VkCommandBuffer>& GetCommandBuffersRef() { return m_CommandBuffers; }
 	private:
-		VkCommandBuffer m_CommandBuffer;
+		std::vector<VkCommandBuffer> m_CommandBuffers;
 	};
 }

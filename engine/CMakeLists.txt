@@ -17,7 +17,7 @@ target_precompile_headers(Engine PRIVATE ${CMAKE_SOURCE_DIR}/pch/pch.h)
 
 # Include directories for the Engine library
 # Removed ${Vulkan_INCLUDE_DIRS}
-target_include_directories(Engine PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(Engine PRIVATE ${CMAKE_SOURCE_DIR} ${Vulkan_INCLUDE_DIRS})
 
 # Link the Utils library and other dependencies (Vulkan removed)
-target_link_libraries(Engine PRIVATE Utils glfw glad Core Editor)
+target_link_libraries(Engine PRIVATE Utils glfw glad Core Editor Vulkan::Vulkan)

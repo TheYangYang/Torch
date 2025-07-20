@@ -29,40 +29,78 @@ namespace core
 
 		TORCH_LOG_INFO("Finished initialization of Vulkan.");
 	}
-	void TorchVulkanContext::ReCreate()
-	{
+	void TorchVulkanContext::ReCreateSwapChain()
+    {
+        int width = 0, height = 0;
+        glfwGetFramebufferSize(s_WindowPtr, &width, &height);
+        while (width == 0 || height == 0) {
+            glfwGetFramebufferSize(s_WindowPtr, &width, &height);
+            glfwWaitEvents();
+        }
 
-		TORCH_LOG_INFO("recreate");
-	}
+        vkDeviceWaitIdle(m_LogicDevice->GetLogicDevice());
+
+       /* m_Framebuffer->CleanupSwapChain(m_LogicDevice->GetLogicDevice());
+        m_SwapChain->CleanupSwapChain(m_LogicDevice->GetLogicDevice());
+        m_GraphicsPipeline->CleanPipelineAndLayout(m_LogicDevice->GetLogicDevice());
+        m_RenderPass->CleanRenderPass(m_LogicDevice->GetLogicDevice());
+        m_SyncObjects->CleanSyncObjects(m_LogicDevice->GetLogicDevice());
+        m_CommandPool->CleanCommandPool(m_LogicDevice->GetLogicDevice());
+        m_LogicDevice->CleanLogicDevice();
+        
+        m_Surface->CleanSurface(m_Instance->GetInstance());
+        m_Instance->CleanInstance();
+
+        glfwDestroyWindow(window);
+
+        glfwTerminate();*/
+
+
+        m_Framebuffer->CleanupSwapChain(m_LogicDevice->GetLogicDevice());
+        m_SwapChain->CleanupSwapChain(m_LogicDevice->GetLogicDevice());
+
+        m_SwapChain->CreateSwapChain(m_PhysicalDevice->GetPhysicalDevice(), m_LogicDevice->GetLogicDevice(), m_Surface->GetSurface(), s_WindowPtr);
+        m_ImageView->CreateImageViews(*m_SwapChain, m_LogicDevice->GetLogicDevice());
+        m_Framebuffer->CreateFramebuffers(*m_SwapChain, m_RenderPass->GetRenderPass(), m_LogicDevice->GetLogicDevice());
+    }
 
 	void TorchVulkanContext::DrawFrame()
 	{  
-        vkWaitForFences(m_LogicDevice->GetLogicDevice(), 1, &m_SyncObjects->GetInFlightFenceRef(), VK_TRUE, UINT64_MAX);
-        vkResetFences(m_LogicDevice->GetLogicDevice(), 1, &m_SyncObjects->GetInFlightFenceRef());
+        vkWaitForFences(m_LogicDevice->GetLogicDevice(), 1, &m_SyncObjects->GetInFlightFencesRef()[currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex;
-        vkAcquireNextImageKHR(m_LogicDevice->GetLogicDevice(), m_SwapChain->GetSwapChain(), UINT64_MAX, m_SyncObjects->GetImageAvailableSemaphoreRef(), VK_NULL_HANDLE, &imageIndex);
+        VkResult result = vkAcquireNextImageKHR(m_LogicDevice->GetLogicDevice(), m_SwapChain->GetSwapChain(), UINT64_MAX, m_SyncObjects->GetImageAvailableSemaphoresRef()[currentFrame], VK_NULL_HANDLE, &imageIndex);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            ReCreateSwapChain();
+            return;
+        }
+        else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            throw std::runtime_error("failed to acquire swap chain image!");
+        }
+        
+        vkResetFences(m_LogicDevice->GetLogicDevice(), 1, &m_SyncObjects->GetInFlightFencesRef()[currentFrame]);
 
-        vkResetCommandBuffer(m_CommandBuffer->GetCommandBufferRef(), /*VkCommandBufferResetFlagBits*/ 0);
+
+        vkResetCommandBuffer(m_CommandBuffer->GetCommandBuffersRef()[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         RecordCommandBuffer(imageIndex);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = { m_SyncObjects->GetImageAvailableSemaphoreRef()};
+        VkSemaphore waitSemaphores[] = { m_SyncObjects->GetImageAvailableSemaphoresRef()[currentFrame]};
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
 
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_CommandBuffer->GetCommandBufferRef();
+        submitInfo.pCommandBuffers = &m_CommandBuffer->GetCommandBuffersRef()[currentFrame];
 
-        VkSemaphore signalSemaphores[] = { m_SyncObjects->GetRenderFinishedSemaphoreRef()};
+        VkSemaphore signalSemaphores[] = { m_SyncObjects->GetRenderFinishedSemaphoresRef()[currentFrame] };
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(m_LogicDevice->GetGraphicsQueue(), 1, &submitInfo, m_SyncObjects->GetInFlightFenceRef()) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_LogicDevice->GetGraphicsQueue(), 1, &submitInfo, m_SyncObjects->GetInFlightFencesRef()[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
 
@@ -78,7 +116,18 @@ namespace core
 
         presentInfo.pImageIndices = &imageIndex;
 
-        vkQueuePresentKHR(m_LogicDevice->GetPresentQueue(), &presentInfo);
+        result = vkQueuePresentKHR(m_LogicDevice->GetPresentQueue(), &presentInfo);
+
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+            framebufferResized = false;
+            ReCreateSwapChain();
+        }
+        else if (result != VK_SUCCESS) {
+            throw std::runtime_error("failed to present swap chain image!");
+        }
+
+        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 
@@ -86,7 +135,7 @@ namespace core
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-        if (vkBeginCommandBuffer(m_CommandBuffer->GetCommandBufferRef(), &beginInfo) != VK_SUCCESS) {
+        if (vkBeginCommandBuffer(m_CommandBuffer->GetCommandBuffersRef()[currentFrame], &beginInfo) != VK_SUCCESS) {
             throw std::runtime_error("failed to begin recording command buffer!");
         }
 
@@ -101,9 +150,9 @@ namespace core
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
-        vkCmdBeginRenderPass(m_CommandBuffer->GetCommandBufferRef(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(m_CommandBuffer->GetCommandBuffersRef()[currentFrame], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(m_CommandBuffer->GetCommandBufferRef(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->GetGraphicsPipeline());
+        vkCmdBindPipeline(m_CommandBuffer->GetCommandBuffersRef()[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->GetGraphicsPipeline());
 
         VkViewport viewport{};
         viewport.x = 0.0f;
@@ -112,18 +161,18 @@ namespace core
         viewport.height = (float)m_SwapChain->GetSwapChainExtentRef().height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(m_CommandBuffer->GetCommandBufferRef(), 0, 1, &viewport);
+        vkCmdSetViewport(m_CommandBuffer->GetCommandBuffersRef()[currentFrame], 0, 1, &viewport);
 
         VkRect2D scissor{};
         scissor.offset = { 0, 0 };
         scissor.extent = m_SwapChain->GetSwapChainExtentRef();
-        vkCmdSetScissor(m_CommandBuffer->GetCommandBufferRef(), 0, 1, &scissor);
+        vkCmdSetScissor(m_CommandBuffer->GetCommandBuffersRef()[currentFrame], 0, 1, &scissor);
 
-        vkCmdDraw(m_CommandBuffer->GetCommandBufferRef(), 3, 1, 0, 0);
+        vkCmdDraw(m_CommandBuffer->GetCommandBuffersRef()[currentFrame], 3, 1, 0, 0);
 
-        vkCmdEndRenderPass(m_CommandBuffer->GetCommandBufferRef());
+        vkCmdEndRenderPass(m_CommandBuffer->GetCommandBuffersRef()[currentFrame]);
 
-        if (vkEndCommandBuffer(m_CommandBuffer->GetCommandBufferRef()) != VK_SUCCESS) {
+        if (vkEndCommandBuffer(m_CommandBuffer->GetCommandBuffersRef()[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to record command buffer!");
         }
     }

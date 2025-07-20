@@ -4,6 +4,10 @@ namespace core
 {
 	VulkanFramebuffer::VulkanFramebuffer(VulkanSwapChain& swapChain, VkRenderPass renderPass, VkDevice logicDevice)
 	{
+        CreateFramebuffers(swapChain, renderPass, logicDevice);
+	}
+    void VulkanFramebuffer::CreateFramebuffers(VulkanSwapChain& swapChain, VkRenderPass renderPass, VkDevice logicDevice)
+    {
         auto& swapChainImageViews = swapChain.GetSwapChainImageViewsRef();
         auto& swapChainExtent = swapChain.GetSwapChainExtentRef();
 
@@ -27,5 +31,5 @@ namespace core
                 throw std::runtime_error("failed to create framebuffer!");
             }
         }
-	}
+    }
 }

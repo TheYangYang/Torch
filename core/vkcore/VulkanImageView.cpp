@@ -5,6 +5,11 @@ namespace core
 {
 	VulkanImageView::VulkanImageView(VulkanSwapChain& swapChain, VkDevice logicDevice)
 	{
+		CreateImageViews(swapChain, logicDevice);
+	}
+
+	void VulkanImageView::CreateImageViews(VulkanSwapChain& swapChain, VkDevice logicDevice)
+	{
 		swapChain.GetSwapChainImageViewsRef().resize(swapChain.GetSwapChainImagesRef().size());
 
 		for (size_t i = 0; i < swapChain.GetSwapChainImagesRef().size(); i++) {

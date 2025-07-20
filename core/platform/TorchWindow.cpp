@@ -58,7 +58,7 @@ namespace core
 		{
             auto* torchWindow = static_cast<TorchWindow*>(glfwGetWindowUserPointer(window));
             torchWindow->SetWindowSize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
-            glViewport(0, 0, width, height);
+            //glViewport(0, 0, width, height);
             WindowResizeEvent event(width, height);
 			torchWindow->OnEvent(event); 
         });

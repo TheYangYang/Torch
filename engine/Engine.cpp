@@ -35,7 +35,6 @@ namespace engine
         utils::ServiceLocator::RegisterMouse(std::move(core::Mouse::GetInstance()));
         utils::ServiceLocator::RegisterKeyboard(std::move(core::Keyboard::GetInstance()));
         utils::ServiceLocator::RegisterWindow(std::move(window));
-        //editor::Editor::SetUpImGui();
 
         //initialize UI
         //editor::Editor::AddModule(editor::EditorType::Viewport, std::make_unique<editor::Viewport>());
@@ -56,6 +55,7 @@ namespace engine
     {
         auto appWindow = utils::ServiceLocator::GetWindow();
         auto& context = core::TorchVulkanContext::Get(appWindow->GetWinSpecification().glfwWindow);
+        //editor::Editor::SetUpImGui();
 
         while (!appWindow->ShouldClose())
         {
@@ -70,9 +70,9 @@ namespace engine
 
             context.DrawFrame();
             //
-            //editor::Editor::ImGuiBegin();
-            //editor::Editor::Render();
-            //editor::Editor::ImGuiEnd();
+            /*editor::Editor::ImGuiBegin();
+            editor::Editor::Render();
+            editor::Editor::ImGuiEnd();*/
 
             //appWindow->SwapBuffers();
         }

@@ -81,7 +81,14 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
+#ifdef IMGUI_IMPL_VULKAN_USE_VOLK
+#define VOLK_IMPLEMENTATION
+#include <volk.h>
+#endif
+
+
 constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+inline uint32_t currentFrame = 0;
 
 
 

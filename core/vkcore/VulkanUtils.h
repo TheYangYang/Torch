@@ -46,9 +46,7 @@ namespace core
 		static VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window);
 		static SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 
-
 	private:
 		static VkDebugUtilsMessengerEXT m_DebugMessenger;
-		
 	};
 }

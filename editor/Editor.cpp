@@ -13,6 +13,11 @@ namespace editor
 	uint32_t Editor::m_NavbarHeight;
 	bool Editor::m_FullScreen = true;
 
+	ImGui_ImplVulkanH_Window Editor::g_MainWindowData;
+	ImGui_ImplVulkanH_Window* Editor::wd = &g_MainWindowData;
+
+	bool Editor::g_SwapChainRebuild = false;
+
 	void Editor::Render()
 	{
 		DockSpace();
@@ -28,6 +33,7 @@ namespace editor
 
 	void Editor::SetUpImGui()
 	{
+#ifdef TORCH_ENGINE_API_OPENGL
 		// Setup Dear ImGui context
 		m_WindowPtr = utils::ServiceLocator::GetWindow();
 		IMGUI_CHECKVERSION();
@@ -101,13 +107,66 @@ namespace editor
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 		style.GrabRounding = style.FrameRounding = style.TabRounding = 0.0f;
+#endif
+		// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
+		//io.ConfigViewportsNoAutoMerge = true;
+		//io.ConfigViewportsNoTaskBarIcon = true;
+
+		// Setup Dear ImGui style
+		ImGui::StyleColorsDark();
+		//ImGui::StyleColorsLight();
+
+
+		// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+		ImGuiStyle& style = ImGui::GetStyle();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+
+		// Setup Platform/Renderer backends
+		ImGui_ImplGlfw_InitForVulkan(utils::ServiceLocator::GetWindow()->GetWinSpecification().glfwWindow, true);
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		
+		//init_info.ApiVersion = VK_API_VERSION_1_3;              // Pass in your value of VkApplicationInfo::apiVersion, otherwise will default to header version.
+		auto& context = core::TorchVulkanContext::Get(nullptr);
+
+		init_info.Instance = context.GetInstance().GetInstance();
+		init_info.PhysicalDevice = context.GetPhysicalDevice().GetPhysicalDevice();
+		init_info.Device = context.GetLogicDevice().GetLogicDevice();
+		init_info.QueueFamily = core::VulkanUtils::FindQueueFamilies(context.GetPhysicalDevice().GetPhysicalDevice(), context.GetSurface().GetSurface()).graphicsFamily.value();
+		init_info.Queue = context.GetLogicDevice().GetGraphicsQueue();
+		init_info.PipelineCache = context.GetLogicDevice().GetPipelineCache();
+		init_info.DescriptorPool = context.GetLogicDevice().GetDescriptorPool();
+		init_info.RenderPass = context.GetRenderPass().GetRenderPass();
+		init_info.Subpass = 0;
+		init_info.MinImageCount = 2;
+		init_info.ImageCount = context.GetSwapChain().GetSwapChainImagesRef().size();
+		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		init_info.Allocator = nullptr; // g_allocator
+		init_info.CheckVkResultFn = check_vk_result;
+		ImGui_ImplVulkan_Init(&init_info);
+
 	}
 
 	void Editor::ImGuiBegin()
 	{
+#ifdef TORCH_ENGINE_API_OPENGL
 		ImGui_ImplOpenGL3_NewFrame();
+#else
+		ImGui_ImplVulkan_NewFrame();
+#endif
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+
 	}
 
 	void Editor::ImGuiEnd()
@@ -116,6 +175,8 @@ namespace editor
 		ImGuiIO &io = ImGui::GetIO();
 		(void)io;
 		ImGui::Render();
+
+#ifdef TORCH_ENGINE_API_OPENGL
 		// int display_w, display_h;
 		// glfwGetFramebufferSize(m_WindowPtr->GetWinSpecification().glfwWindow, &display_w, &display_h);
 		// glViewport(0, 0, display_w, display_h);
@@ -123,11 +184,34 @@ namespace editor
 
 		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			GLFWwindow *backup_current_context = glfwGetCurrentContext();
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
 			ImGui::UpdatePlatformWindows();
 			ImGui::RenderPlatformWindowsDefault();
 			glfwMakeContextCurrent(backup_current_context);
 		}
+#else
+		ImDrawData* main_draw_data = ImGui::GetDrawData();
+		const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
+		wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+		wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+		wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+		wd->ClearValue.color.float32[3] = clear_color.w;
+		auto& context = core::TorchVulkanContext::Get(nullptr);
+		if (!main_is_minimized)
+			FrameRender(wd, main_draw_data, context.GetLogicDevice().GetLogicDevice(), context.GetLogicDevice().GetGraphicsQueue());
+
+		// Update and Render additional Platform Windows
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+		}
+
+		// Present Main Platform Window
+		if (!main_is_minimized)
+			FramePresent(wd, context.GetLogicDevice().GetPresentQueue());
+#endif
+		
 	}
 
 	void Editor::OpenSceneFile()

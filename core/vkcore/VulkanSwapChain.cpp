@@ -6,6 +6,11 @@ namespace core
 {
 	VulkanSwapChain::VulkanSwapChain(VkPhysicalDevice physicalDevice, VkDevice logicDevice, VkSurfaceKHR surface, GLFWwindow* window)
 	{
+		CreateSwapChain(physicalDevice, logicDevice, surface, window);
+	}
+
+	void VulkanSwapChain::CreateSwapChain(VkPhysicalDevice physicalDevice, VkDevice logicDevice, VkSurfaceKHR surface, GLFWwindow* window)
+	{
 		SwapChainSupportDetails swapChainSupport = VulkanUtils::QuerySwapChainSupport(physicalDevice, surface);
 
 		VkSurfaceFormatKHR surfaceFormat = VulkanUtils::ChooseSwapSurfaceFormat(swapChainSupport.formats);

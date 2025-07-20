@@ -8,6 +8,8 @@ namespace core
 	{
 	public:
 		VulkanImageView(VulkanSwapChain& swapChain, VkDevice logicDevice);
+
+		void CreateImageViews(VulkanSwapChain& swapChain, VkDevice logicDevice);
 	private:
 	};
 }

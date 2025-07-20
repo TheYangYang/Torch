@@ -8,12 +8,22 @@ namespace core
 	public:
 		VulkanSyncObjects(VkDevice logicDevice);
 
-		VkSemaphore& GetImageAvailableSemaphoreRef() { return m_ImageAvailableSemaphore; }
-		VkSemaphore& GetRenderFinishedSemaphoreRef() { return m_RenderFinishedSemaphore; }
-		VkFence& GetInFlightFenceRef() { return m_InFlightFence; }
+		std::vector<VkSemaphore>& GetImageAvailableSemaphoresRef() { return m_ImageAvailableSemaphores; }
+		std::vector<VkSemaphore>& GetRenderFinishedSemaphoresRef() { return m_RenderFinishedSemaphores; }
+		std::vector<VkFence>& GetInFlightFencesRef() { return m_InFlightFences; }
+
+		void CleanSyncObjects(VkDevice logicDevice)
+		{
+			for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+			{
+				vkDestroySemaphore(logicDevice, m_RenderFinishedSemaphores[i], nullptr);
+				vkDestroySemaphore(logicDevice, m_ImageAvailableSemaphores[i], nullptr);
+				vkDestroyFence(logicDevice, m_InFlightFences[i], nullptr);
+			}
+		}
 	private:
-		VkSemaphore m_ImageAvailableSemaphore;
-		VkSemaphore m_RenderFinishedSemaphore;
-		VkFence m_InFlightFence;
+		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
+		std::vector<VkSemaphore>m_RenderFinishedSemaphores;
+		std::vector<VkFence> m_InFlightFences;
 	};
 }
