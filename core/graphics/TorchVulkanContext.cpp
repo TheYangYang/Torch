@@ -25,7 +25,7 @@ namespace core
 		m_Framebuffer = CreateScope<VulkanFramebuffer>(*m_SwapChain, m_RenderPass->GetRenderPass(), m_LogicDevice->GetLogicDevice());
 		m_CommandPool = CreateScope<VulkanCommandPool>(m_PhysicalDevice->GetPhysicalDevice(), m_LogicDevice->GetLogicDevice(), m_Surface->GetSurface());
 		m_CommandBuffer = CreateScope<VulkanCommandBuffer>(m_CommandPool->GetCommandPool(), m_LogicDevice->GetLogicDevice());
-        m_SyncObjects = CreateScope<VulkanSyncObjects>(m_LogicDevice->GetLogicDevice());
+        m_SyncObjects = CreateScope<VulkanSyncObjects>(m_LogicDevice->GetLogicDevice(), m_SwapChain->GetSwapChainImagesRef().size());
 
 		TORCH_LOG_INFO("Finished initialization of Vulkan.");
 	}
@@ -96,7 +96,7 @@ namespace core
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &m_CommandBuffer->GetCommandBuffersRef()[currentFrame];
 
-        VkSemaphore signalSemaphores[] = { m_SyncObjects->GetRenderFinishedSemaphoresRef()[currentFrame] };
+        VkSemaphore signalSemaphores[] = { m_SyncObjects->GetRenderFinishedSemaphoresRef()[imageIndex] };
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 

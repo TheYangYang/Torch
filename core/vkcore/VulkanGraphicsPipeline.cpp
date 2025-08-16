@@ -1,32 +1,24 @@
 #include "VulkanGraphicsPipeline.h"
 #include <utils/FileUtils.h>
+#include "VulkanShader.h"
 
 namespace core
 {
 	VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice logicDevice, VkRenderPass renderPass)
 	{
-        std::filesystem::path exePath = std::filesystem::current_path();
-        std::filesystem::path shaderDir = exePath / "compiled_shaders";
-
-        auto vertShaderPath = shaderDir / "vert.spv";
-        auto fragShaderPath = shaderDir / "frag.spv";
-
-        auto vertShaderCode = utils::FileUtils::ReadShaderFile(vertShaderPath.string());
-        auto fragShaderCode = utils::FileUtils::ReadShaderFile(fragShaderPath.string());
-
-        VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode, logicDevice);
-        VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCode, logicDevice);
+        VulkanShader vkVertexShader("vert.spv", logicDevice);
+        VulkanShader vkFragmentShader("frag.spv", logicDevice);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        vertShaderStageInfo.module = vertShaderModule;
+        vertShaderStageInfo.module = vkVertexShader.GetShaderModule();
         vertShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
         fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
         fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-        fragShaderStageInfo.module = fragShaderModule;
+        fragShaderStageInfo.module = vkFragmentShader.GetShaderModule();
         fragShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
@@ -113,8 +105,8 @@ namespace core
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
-        vkDestroyShaderModule(logicDevice, fragShaderModule, nullptr);
-        vkDestroyShaderModule(logicDevice, vertShaderModule, nullptr);
+        vkVertexShader.VulkanShaderClean(logicDevice);
+        vkFragmentShader.VulkanShaderClean(logicDevice);
 	}
 
     VkShaderModule VulkanGraphicsPipeline::CreateShaderModule(const std::vector<char>& code, VkDevice logicDevice)

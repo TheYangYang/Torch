@@ -6,7 +6,7 @@ namespace core
 	class VulkanSyncObjects
 	{
 	public:
-		VulkanSyncObjects(VkDevice logicDevice);
+		VulkanSyncObjects(VkDevice logicDevice, uint32_t swapchainImageCount);
 
 		std::vector<VkSemaphore>& GetImageAvailableSemaphoresRef() { return m_ImageAvailableSemaphores; }
 		std::vector<VkSemaphore>& GetRenderFinishedSemaphoresRef() { return m_RenderFinishedSemaphores; }
@@ -25,5 +25,6 @@ namespace core
 		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
 		std::vector<VkSemaphore>m_RenderFinishedSemaphores;
 		std::vector<VkFence> m_InFlightFences;
+		uint32_t m_SwapchainImageCount; 
 	};
 }

@@ -8,6 +8,7 @@ namespace core
 	}
     void VulkanFramebuffer::CreateFramebuffers(VulkanSwapChain& swapChain, VkRenderPass renderPass, VkDevice logicDevice)
     {
+        TORCH_LOG_INFO("Framebuffer created.");
         auto& swapChainImageViews = swapChain.GetSwapChainImageViewsRef();
         auto& swapChainExtent = swapChain.GetSwapChainExtentRef();
 

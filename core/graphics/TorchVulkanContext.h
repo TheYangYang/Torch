@@ -51,6 +51,7 @@ namespace core
 	private:
 		static GLFWwindow* s_WindowPtr;
 		bool framebufferResized = false;
+		std::vector<VkFence> imagesInFlight;
 
 		void RecordCommandBuffer(uint32_t imageIndex);
 
